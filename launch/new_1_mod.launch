@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<launch>
+  <param name="use_sim_time" value="true"/>
+  <arg name="path" default="/home/$(optenv USER gsl)/datasets/aircap/aircap_1.bag"/>
+  <arg name="debug" default="false"/>
+  <arg name="publish" default="true"/>
+  <arg name="rate" default="1.0"/>
+  <arg name="particles" default="250"/>
+  <arg name="performer_path" default="/home/$(optenv USER gsl)/datasets/pfuclt/"/>
+  <arg name="performer_file" default="experimentX-y_Nrobots_datasetD_runR.bag"/>
+  <node pkg="rosbag" type="play" name="player" required="true" output="screen" args="--quiet --clock --rate=$(arg rate) $(arg path)"/>
+  <node name="performer" pkg="pfuclt_omni_dataset" type="pfuclt_omni_dataset" output="screen" args="--debug $(arg debug) --publish $(arg publish)">
+    <param name="percentage_to_keep" value="50"/>
+    <param name="velocity_estimator_stack_size" value="10"/>
+    <param name="predict_model_stddev" value="30"/>
+    <param name="particles" value="$(arg particles)"/>
+    <param name="OMNI1_alpha" value="0.015, 0.1, 0.5, 0.001"/>
+    <remap to="/gtData" from="/gtData_4robotExp"/>
+    <rosparam param="PLAYING_ROBOTS">[1]</rosparam>
+    <param name="MAX_ROBOTS" value="1"/>
+    <param name="ROB_HT" value="0.81"/>
+    <param name="MY_ID" value="1"/>
+    <param name="NUM_TARGETS" value="1"/>
+    <param name="LANDMARK_COV/K1" value="0.02"/>
+    <param name="LANDMARK_COV/K2" value="0.005"/>
+    <param name="LANDMARK_COV/K3" value="0.002"/>
+    <param name="LANDMARK_COV/K4" value="0.005"/>
+    <param name="LANDMARK_COV/K5" value="0.005"/>
+    <param name="NUM_LANDMARKS" value="10"/>
+    <param name="LANDMARKS_CONFIG" value="$(find pfuclt_omni_dataset)/config/landmarks.csv"/>
+    <param name="USE_CUSTOM_VALUES" value="false"/>
+    <rosparam param="POS_INIT">[2.2789041318013243, 1.3607741319422875, -1.8513808843781636]</rosparam>
+    <rosparam param="CUSTOM_PARTICLE_INIT">[2.2589041318013243,2.2989041318013244,1.3407741319422875,1.3807741319422875,-1.8713808843781636,-1.8313808843781636,5.0182057222080045,5.058205722208004,-2.722981494588499,-2.682981494588499,1.4260915236365355,1.4660915236365355]</rosparam>
+  </node>
+  <node pkg="rosbag" name="record_performance" type="record" args="--all --output-name=$(arg performer_path)/$(arg performer_file)"/>
+</launch>
